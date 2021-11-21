@@ -1,0 +1,44 @@
+<mat-toolbar color="primary">
+    <mat-toolbar-row>
+        <span>
+            <button mat-raised-button style="background-color: #000; color: #9d9d9d; padding-right: 10.6rem ; width: 20rem ;">
+                <img src="https://i.imgur.com/kN9W6eQ.png" style="max-width: 150px;">
+                <span style="position: absolute; font-size: 24px; right: 9px ; top: -1px ; text-transform: lowercase;">Reminder Bot</span>
+            </button>
+        </span>
+        <span class="spacer"></span>
+        <div *ngIf="user; else guest">
+            <img 
+                src="{{ user.image_url }}" 
+                class="header-image clickable"
+                matTooltip="Signed in as {{ user.name }} (Click to sign out)"
+                matTooltipPosition="left"
+                (click)="signOut()"
+            >
+        </div>
+        <ng-template #guest>
+            <button mat-raised-button color="warn" (click)="signIn()">Sign In with GroupMe</button>
+        </ng-template>
+    </mat-toolbar-row>
+</mat-toolbar>
+
+<div class="app-container" *ngIf="user; else guestHeader">
+    <div class="center-all">
+        <h1>Welcome, {{ user.name }}</h1>
+        <p>
+            Welcome to the GroupMe Reminder Bot configuration page!<br>
+            Select a group from below to manage, or add the bot to a new group.
+        </p>
+        <mat-tab-group>
+            <mat-tab label="First"> Content 1 </mat-tab>
+            <mat-tab label="Second"> Content 2 </mat-tab>
+            <mat-tab label="Third"> Content 3 </mat-tab>
+          </mat-tab-group>
+    </div>
+</div>
+<ng-template #guestHeader>
+    <div class="app-container center-h-v" >
+        <h1>GroupMe Reminder Bot</h1>
+        <p>Welcome to the GroupMe Reminder Bot. Sign in with your GroupMe account to get started.</p>
+    </div>
+</ng-template>

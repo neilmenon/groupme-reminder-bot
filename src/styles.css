@@ -1,1 +1,68 @@
 /* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.spacer {
+    flex: 1 1 auto;
+}
+
+.app-container {
+    padding-top: 15px;
+    width: 60%;
+    margin: auto;
+    padding-top: 3rem;
+}
+
+hr {
+    border: 1px solid #b3b2b2c7;
+    border-bottom: none;
+}
+
+.center {
+    text-align: center;
+}
+.center-all {
+    text-align: center;
+    margin: auto;
+    display: block;
+}
+.center-h-v {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%,-50%);
+    transform: translate(-50%,-50%);
+    text-align: center;
+    width: 100%;
+}
+
+a {
+    color: #ff4081;
+    text-decoration: none;
+}
+a:hover {
+    color: #3f51b5;
+}
+
+@media screen and (max-width: 1220px) {
+    .app-container { width: 85%; }
+}
+
+@media screen and (max-width: 789px) {
+    .app-container { width: 95%; }
+}
+
+.full-width {
+    width: 100%;
+}
+
+.disable-click {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.clickable {
+    cursor: pointer;
+}

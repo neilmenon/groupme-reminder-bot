@@ -18,7 +18,7 @@ CORS(app)
 
 @app.before_request
 def before_request():
-   if "access_token" not in session and not ("login" in request.endpoint or "authorize" in request.endpoint):
+   if session and "access_token" not in session and not ("login" in request.endpoint or "authorize" in request.endpoint or "user" in request.endpoint):
       session['login_redirect'] = request.url
       return redirect("/api/login")
 
@@ -28,11 +28,20 @@ def index():
 
 @app.route('/api/user', methods=['GET'])
 def users(): # gets the currently logged in user if logged in, else returns blank object
-   return jsonify(sql_helper.execute_db("SELECT * FROM users WHERE id = {}".format(session['user_id'])))
+   if session and "access_token" in session:
+      return jsonify(sql_helper.execute_db("SELECT id,name,num_reminders,image_url FROM users WHERE id = {}".format(session['user_id']))[0])
+   else:
+      return jsonify(None)
 
 @app.route('/api/login', methods=['GET'])
 def login():
    return redirect(cfg['groupme_redirect_url'])
+
+@app.route('/api/logout', methods=['GET'])
+def logout():
+   del session['access_token']
+   del session['user_id']
+   return redirect(cfg['frontend_url'])
 
 @app.route('/api/authorize', methods=['GET'])
 def authorize():
