@@ -1,0 +1,13 @@
+[Unit]
+Description=uWSGI instance of the Flask server for groupme-reminder-bot
+After=network.target
+
+[Service]
+User=root
+Group=nginx
+WorkingDirectory=/root/projects/groupme-reminder-bot/backend
+Environment="PATH=/root/projects/groupme-reminder-bot/backend/env/bin"
+ExecStart=/root/projects/groupme-reminder-bot/backend/env/bin/uwsgi --ini app.ini --enable-threads
+
+[Install]
+WantedBy=multi-user.target
