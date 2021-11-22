@@ -10,3 +10,11 @@ export class UserModel {
 
     }
 }
+
+export class ReminderModel {
+    id: number
+    text: string
+    timestamp: string
+    frequency: number
+    group_id: number
+}

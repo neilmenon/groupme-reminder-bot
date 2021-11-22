@@ -5,6 +5,7 @@ import requests
 import time
 import os
 import datetime
+import random
 
 import config
 import sql_helper
@@ -19,7 +20,7 @@ CORS(app)
 
 @app.before_request
 def before_request():
-   if session and "access_token" not in session and not ("login" in request.endpoint or "authorize" in request.endpoint or "user" in request.endpoint):
+   if session and "access_token" not in session and not ("login" in request.endpoint or "authorize" in request.endpoint or "user" in request.endpoint or "reminder-task" in request.endpoint):
       session['login_redirect'] = request.url
       return redirect("/api/login")
 
@@ -147,6 +148,114 @@ def delete_group(group_id):
 def get_group(group_id):
    result = sql_helper.execute_db("SELECT id FROM groups WHERE id = {}".format(group_id))
    return jsonify(result[0]) if len(result) else jsonify(None)
+
+@app.route('/api/reminders/create', methods=['POST'])
+def create_reminder():
+   params = request.get_json()
+   if params:
+      try:
+         group_id = params['group_id']
+         text = params['text']
+         timestamp = params['timestamp']
+         frequency = params['frequency']
+      except KeyError as e:
+         response = make_response(jsonify(error="Missing required parameter: " + str(e.args[0]) + "."), 400)
+         abort(response)
+
+   data: dict = {
+      "id": random.randint(0, 5000),
+      "text": text,
+      "timestamp": timestamp,
+   }
+   if frequency:
+      data['frequency'] = frequency
+
+   # insert reminder into table
+   sql_helper.execute_db(sql_helper.insert_into("reminder", data), commit=True)
+
+   # insert creates relation
+   sql_helper.execute_db(sql_helper.insert_into("creates", { "user_id": session['user_id'], "reminder_id": data['id'] }), commit=True)
+
+   # insert reminds relation
+   sql_helper.execute_db(sql_helper.insert_into("reminds", { "group_id": group_id, "reminder_id": data['id'] }), commit=True)
+
+   # return list of group's reminders
+   return jsonify(sql_helper.execute_db("SELECT reminder.*, reminds.group_id FROM reminder NATURAL JOIN reminds WHERE reminder.id = reminds.reminder_id AND reminds.group_id = {}".format(group_id)))
+
+@app.route('/api/reminders/get', methods=['POST'])
+def get_reminder():
+   params = request.get_json()
+   if params:
+      try:
+         group_id = params['group_id']
+         sort_by = params['sort_by']
+         sort_order = params['sort_order']
+      except KeyError as e:
+         response = make_response(jsonify(error="Missing required parameter: " + str(e.args[0]) + "."), 400)
+         abort(response)
+
+   # return list of group's reminders
+   return jsonify(sql_helper.execute_db("SELECT reminder.* FROM reminder NATURAL JOIN reminds WHERE reminder.id = reminds.reminder_id AND reminds.group_id = {} ORDER BY {} {}".format(group_id, sort_by, sort_order)))
+
+@app.route('/api/reminders/delete', methods=['POST'])
+def delete_reminder():
+   params = request.get_json()
+   if params:
+      try:
+         reminder_id = params['reminder_id']
+         group_id = params['group_id']
+      except KeyError as e:
+         response = make_response(jsonify(error="Missing required parameter: " + str(e.args[0]) + "."), 400)
+         abort(response)
+
+   # delete reminder
+   sql_helper.execute_db("DELETE FROM reminder WHERE id = {}".format(reminder_id), commit=True)
+   
+   # return reminders
+   return jsonify(sql_helper.execute_db("SELECT reminder.*, reminds.group_id FROM reminder NATURAL JOIN reminds WHERE reminder.id = reminds.reminder_id AND reminds.group_id = {}".format(group_id)))
+
+@app.route('/api/reminders/reminder-task', methods=['POST'])
+def reminder_task():
+   params = request.get_json()
+   if params:
+      try:
+         sk = params['secret_key']
+      except KeyError as e:
+         response = make_response(jsonify(error="Missing required parameter: " + str(e.args[0]) + "."), 400)
+         abort(response)
+
+   if sk != cfg['secret_key']:
+      abort(401)
+
+   # get all reminders
+   result = sql_helper.execute_db("SELECT reminder.*, reminds.group_id, groups.bot_id FROM reminder LEFT JOIN reminds ON reminder.id = reminds.reminder_id LEFT JOIN groups ON groups.id = reminds.group_id")
+   for reminder in result:
+      reminder_date = datetime.datetime.utcfromtimestamp(int(reminder['timestamp']))
+      if reminder_date < datetime.datetime.utcnow(): # needs to be sent!
+         logger.log("Sending reminder: {}".format(reminder))
+
+         # create  & send reminder
+         data = { "text": "❗❗❗REMINDER: {}".format(reminder['text']), "bot_id": reminder['bot_id'] }
+         requests.post("https://api.groupme.com/v3/bots/post", json=data)
+
+         # create entry in reminder history:
+         data = {
+            "reminder_id": reminder['id'],
+            "sent": str(datetime.datetime.now()),
+            "text": reminder['text'],
+            "group_id": reminder['group_id']
+         }
+         sql_helper.execute_db(sql_helper.insert_into("reminder_history", data), commit=True)
+
+         if reminder['frequency']: # set new date to send
+            new_date = int(reminder['timestamp']) + 60 * reminder['frequency']
+            sql_helper.execute_db("UPDATE reminder SET timestamp = '{}' WHERE id = {}".format(new_date, reminder['id']), commit=True)
+         else: # delete reminder from DB
+            sql_helper.execute_db("DELETE FROM reminder WHERE id = {}".format(reminder['id']), commit=True)
+
+   # return reminders
+   return jsonify(True)
+
 
 if __name__ == "__main__":
    # localhost or server?

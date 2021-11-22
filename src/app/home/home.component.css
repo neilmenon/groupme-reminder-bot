@@ -9,3 +9,15 @@
     top: 0.4rem ; 
     left: 0.5rem ;
 }
+.tab-content {
+    padding: 1rem;
+}
+.tab-form {
+    padding: 1rem;
+    border: 0.5px solid #bfbfbf;
+    margin-top: 1rem;
+    
+}
+.mat-elevation-z8 th {
+    text-align: center;
+}

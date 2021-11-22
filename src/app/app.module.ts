@@ -35,6 +35,9 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTabsModule } from '@angular/material/tabs';
 import { HomeComponent } from './home/home.component';
 import { ConfirmPopupComponent } from './confirm-popup/confirm-popup.component';
+import { MatMomentDateModule } from '@angular/material-moment-adapter';
+import { MatTableModule } from '@angular/material/table';
+
 
 @NgModule({
   declarations: [
@@ -72,6 +75,8 @@ import { ConfirmPopupComponent } from './confirm-popup/confirm-popup.component';
     MatRadioModule,
     MatCheckboxModule,
     MatTabsModule,
+    MatMomentDateModule,
+    MatTableModule,
     RouterModule.forRoot([
       {path: '', component: HomeComponent},
     ])

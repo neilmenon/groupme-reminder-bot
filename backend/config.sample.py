@@ -11,5 +11,6 @@ config = {
     'groupme_redirect_url': '', # redirect URL of GroupMe Application
     'frontend_url': '',
     'callback_url': '',
+    'secret_key': '',
     
 }

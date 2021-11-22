@@ -30,4 +30,25 @@ export class BackendService {
   deleteBotFromGroup(groupId: any) {
     return this.http.delete(config.api_root + "/groups/" + groupId + "/delete")
   }
+
+  createReminder(groupId: any, text: string, timestamp: number, frequency: number) {
+    return this.http.post(config.api_root + "/reminders/create", {
+      group_id: groupId,
+      text: text,
+      timestamp: timestamp,
+      frequency: frequency,
+    })
+  }
+
+  getReminders(groupId: any, sortBy: string = "timestamp", sortOrder: string = "DESC") {
+    return this.http.post(config.api_root + "/reminders/get", {
+      group_id: groupId,
+      sort_by: sortBy,
+      sort_order: sortOrder
+    })
+  }
+
+  deleteReminder(groupId: any, reminderId: number) {
+    return this.http.post(config.api_root + "/reminders/delete", { group_id: groupId, reminder_id: reminderId })
+  }
 }

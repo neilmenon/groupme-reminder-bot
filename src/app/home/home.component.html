@@ -49,10 +49,87 @@
                 <span>Last post: {{ moment.unix(currGroup.updated_at).fromNow() }}</span>
             </div>
             <mat-tab-group>
-                <mat-tab label="Remove Bot"><button mat-raised-button color="warn" (click)="deleteBot()">Remove Bot</button></mat-tab>
-                <mat-tab label="Second"> Content 2 </mat-tab>
-                <mat-tab label="Third"> Content 3 </mat-tab>
-                <mat-tab label="Third"> Content 3 </mat-tab>
+                <!-- Reminders -->
+                <mat-tab label="Reminders">
+                    <div class="tab-content">
+                        <button mat-raised-button color="warn" (click)="rForm.reset(); showReminderForm = !showReminderForm">{{ showReminderForm ? "Hide Form" : "Create Reminder" }}</button><br>
+                        <form [formGroup]="rForm" *ngIf="showReminderForm" class="tab-form">
+                            <h3>Create Reminder</h3>
+                            <mat-form-field appearance="fill" color="accent" class="full-width">
+                                <mat-label>Reminder Text</mat-label>
+                                <input matInput formControlName="text" name="text" placeholder="Meet at Starbucks at 4 PM" required>
+                            </mat-form-field>
+                            <div style="display: flex;justify-content: center;">
+                                <mat-form-field appearance="fill" style="margin-right: 3rem;">
+                                    <mat-label>Choose a reminder date</mat-label>
+                                    <input matInput [matDatepicker]="picker" formControlName="date" [min]="today">
+                                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                                    <mat-datepicker #picker></mat-datepicker>
+                                </mat-form-field>
+                                <mat-form-field appearance="fill">
+                                    <mat-label>Choose a reminder time</mat-label>
+                                    <input matInput formControlName="time" type="time">
+                                </mat-form-field>
+                            </div>
+                            <span><mat-checkbox [checked]="isFrequencyChecked" (change)="toggleFrequency()">Make this reminder recurring?</mat-checkbox></span>
+                            <br>
+                            <div *ngIf="isFrequencyChecked"><strong>Send reminder every...</strong></div>
+                            <br>
+                            <div style="display: flex;justify-content: center;" [class.disable-click]="!isFrequencyChecked">
+                                <mat-form-field appearance="fill" style="margin-right: 3rem;">
+                                    <mat-label>Frequency</mat-label>
+                                    <input matInput formControlName="frequency" type="number" min="1" >
+                                </mat-form-field>
+                                <mat-form-field appearance="fill" style="margin-right: 3rem;">
+                                    <mat-label>Units</mat-label>
+                                    <mat-select formControlName="freqUnit" min="1">
+                                        <mat-option value="minutes">Minute(s)</mat-option>
+                                        <mat-option value="hours">Hours(s)</mat-option>
+                                        <mat-option value="days">Day(s)</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
+                            <button mat-raised-button color="primary" [disabled]="!rForm.valid" (click)="createReminder()">Create Reminder</button>
+                        </form>
+
+                        <!-- Reminders Table -->
+                        <table mat-table [dataSource]="reminders" class="mat-elevation-z8" style="width: 100%; margin-top: 2rem;">
+                            <ng-container matColumnDef="text">
+                              <th mat-header-cell *matHeaderCellDef mat-sort-header disableClear class="clickable" (click)="getReminders('text', true)" matTooltip="Click to sort" matTooltipPosition="above"> Text </th>
+                              <td mat-cell *matCellDef="let element"> {{element.text}} </td>
+                            </ng-container>
+                          
+                            <ng-container matColumnDef="timestamp">
+                              <th mat-header-cell *matHeaderCellDef mat-sort-header disableClear class="clickable" (click)="getReminders('timestamp', true)" matTooltip="Click to sort" matTooltipPosition="above"> Date to Send</th>
+                              <td mat-cell *matCellDef="let element"> {{ moment.unix(element.timestamp).format("MMMM Do, YYYY LT") }} </td>
+                            </ng-container>
+                          
+                            <ng-container matColumnDef="frequency">
+                              <th mat-header-cell *matHeaderCellDef> Frequency </th>
+                              <td mat-cell *matCellDef="let element"> {{ element.frequency ? 'Every ' + moment.duration(element.frequency, "minutes").humanize() : "N/A" }} </td>
+                            </ng-container>
+                          
+                            <ng-container matColumnDef="sendingIn">
+                              <th mat-header-cell *matHeaderCellDef> Next Reminder In </th>
+                              <td mat-cell *matCellDef="let element"> {{ moment.unix(element.timestamp).fromNow(true) }} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="actions">
+                                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                                <td mat-cell *matCellDef="let element"> <button mat-raised-button color="accent" (click)="deleteReminder(element)">Delete Reminder</button> </td>
+                            </ng-container>
+                          
+                            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                        </table>
+                    </div>
+                </mat-tab>
+                <!-- Remove Bot -->
+                <mat-tab label="Remove Bot">
+                    <div class="tab-content">
+                        <button mat-raised-button color="warn" (click)="deleteBot()">Remove Bot</button><br>
+                    </div>
+                </mat-tab>
             </mat-tab-group>
         </div>
     </div>
