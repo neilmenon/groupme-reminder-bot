@@ -31,6 +31,36 @@ export class BackendService {
     return this.http.delete(config.api_root + "/groups/" + groupId + "/delete")
   }
 
+  getReminderHistory(groupId: any) {
+    return this.http.get(config.api_root + "/groups/" + groupId + "/reminder-history")
+  }
+
+  getBotSettings(groupId: any) {
+    return this.http.get(config.api_root + "/groups/" + groupId + "/settings")
+  }
+  
+  setBotSettings(groupId: any, data: any) {
+    return this.http.post(config.api_root + "/groups/" + groupId + "/settings", data)
+  }
+
+  getKeywordMappings(groupId: any) {
+    return this.http.get(config.api_root + "/groups/" + groupId + "/keyword-mapping")
+  }
+
+  createKeywordMapping(groupId: any, phrase: string, mapping: string) {
+    return this.http.post(config.api_root + "/groups/" + groupId + "/keyword-mapping", {
+      phrase: phrase,
+      mapping: mapping
+    })
+  }
+
+  deleteKeywordMapping(groupId: any, phrase: string, mapping: string) {
+    return this.http.post(config.api_root + "/groups/" + groupId + "/keyword-mapping/delete", {
+      phrase: phrase,
+      mapping: mapping
+    })
+  }
+
   createReminder(groupId: any, text: string, timestamp: number, frequency: number) {
     return this.http.post(config.api_root + "/reminders/create", {
       group_id: groupId,
@@ -51,4 +81,5 @@ export class BackendService {
   deleteReminder(groupId: any, reminderId: number) {
     return this.http.post(config.api_root + "/reminders/delete", { group_id: groupId, reminder_id: reminderId })
   }
+
 }

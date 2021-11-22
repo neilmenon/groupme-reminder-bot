@@ -94,6 +94,11 @@
 
                         <!-- Reminders Table -->
                         <table mat-table [dataSource]="reminders" class="mat-elevation-z8" style="width: 100%; margin-top: 2rem;">
+                            <ng-container matColumnDef="id">
+                                <th mat-header-cell *matHeaderCellDef> ID </th>
+                                <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+                              </ng-container>
+
                             <ng-container matColumnDef="text">
                               <th mat-header-cell *matHeaderCellDef mat-sort-header disableClear class="clickable" (click)="getReminders('text', true)" matTooltip="Click to sort" matTooltipPosition="above"> Text </th>
                               <td mat-cell *matCellDef="let element"> {{element.text}} </td>
@@ -116,12 +121,90 @@
 
                             <ng-container matColumnDef="actions">
                                 <th mat-header-cell *matHeaderCellDef> Actions </th>
-                                <td mat-cell *matCellDef="let element"> <button mat-raised-button color="accent" (click)="deleteReminder(element)">Delete Reminder</button> </td>
+                                <td mat-cell *matCellDef="let element"> <button mat-raised-button color="accent" (click)="deleteReminder(element)">Delete</button> </td>
                             </ng-container>
                           
                             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
                         </table>
+                    </div>
+                </mat-tab>
+                <!-- Reminder History -->
+                <mat-tab label="Reminder History">
+                    <div class="tab-content">
+                        <table mat-table [dataSource]="reminderHistory" class="mat-elevation-z8" style="width: 100%; margin-top: 2rem;">
+                            <ng-container matColumnDef="id">
+                              <th mat-header-cell *matHeaderCellDef> Reminder ID </th>
+                              <td mat-cell *matCellDef="let element"> {{element.reminder_id}} </td>
+                            </ng-container>
+                          
+                            <ng-container matColumnDef="sent">
+                              <th mat-header-cell *matHeaderCellDef> Date Sent</th>
+                              <td mat-cell *matCellDef="let element"> {{ moment.unix(element.sent).format("MMMM Do, YYYY LT") }} </td>
+                            </ng-container>
+                          
+                            <ng-container matColumnDef="text">
+                              <th mat-header-cell *matHeaderCellDef> Text </th>
+                              <td mat-cell *matCellDef="let element"> {{ element.text }} </td>
+                            </ng-container>
+                          
+                            <tr mat-header-row *matHeaderRowDef="reminderHistoryColumns"></tr>
+                            <tr mat-row *matRowDef="let row; columns: reminderHistoryColumns;"></tr>
+                        </table>
+                    </div>
+                </mat-tab>
+                <!-- Keyword Mappings -->
+                <mat-tab label="Keyword Mappings">
+                    <div class="tab-content">
+                        <form [formGroup]="keywordForm" class="tab-form">
+                            <h3>Add Keyword Mapping</h3>
+                            <p>Enter the phrase and the thing you want it to map to.<br>Whenever a message in the group matches the phrase, Reminder Bot will sent the mapping.</p>
+                            <div style="display: flex;justify-content: center;">
+                                <mat-form-field appearance="fill" color="accent" class="full-width" style="margin-right: 3rem;">
+                                    <mat-label>Phrase</mat-label>
+                                    <input matInput formControlName="phrase" placeholder="Canes" required>
+                                </mat-form-field>
+                                <mat-form-field appearance="fill" color="accent" class="full-width" >
+                                    <mat-label>Mapping</mat-label>
+                                    <input matInput formControlName="mapping" placeholder="Canes is great!" required>
+                                </mat-form-field>
+                            </div>
+                            <button mat-raised-button color="primary" [disabled]="!keywordForm.valid" (click)="createKeywordMapping()">Create Mapping</button>
+                        </form>
+                        <div class="tab-content">
+                            <table mat-table [dataSource]="keywordMappings" class="mat-elevation-z8" style="width: 100%; margin-top: 2rem;">
+                                <ng-container matColumnDef="phrase">
+                                  <th mat-header-cell *matHeaderCellDef> Phrase </th>
+                                  <td mat-cell *matCellDef="let element"> {{element.phrase}} </td>
+                                </ng-container>
+                              
+                                <ng-container matColumnDef="mapping">
+                                  <th mat-header-cell *matHeaderCellDef> Mapping</th>
+                                  <td mat-cell *matCellDef="let element"> {{ element.mapping }} </td>
+                                </ng-container>
+                              
+                                <ng-container matColumnDef="actions">
+                                  <th mat-header-cell *matHeaderCellDef> Actions </th>
+                                  <td mat-cell *matCellDef="let element"> <button mat-raised-button color="accent" (click)="deleteKeywordMapping(element)">Delete</button> </td>
+                                </ng-container>
+                              
+                                <tr mat-header-row *matHeaderRowDef="keywordColumns"></tr>
+                                <tr mat-row *matRowDef="let row; columns: keywordColumns;"></tr>
+                            </table>
+                        </div>
+                    </div>
+                </mat-tab>
+                <!-- Settings -->
+                <mat-tab label="Settings">
+                    <div class="tab-content">
+                        <form [formGroup]="settingsForm" class="tab-form">
+                            <mat-form-field appearance="fill" color="accent" class="full-width">
+                                <mat-label>Phrase</mat-label>
+                                <input matInput formControlName="prefix" name="prefix" placeholder="❗❗❗REMINDER: " required>
+                            </mat-form-field>
+                            <p>This is the string that is sent before the reminder text.</p>
+                            <button mat-raised-button color="primary" [disabled]="!settingsForm.valid" (click)="updateSettings()">Update Settings</button>
+                        </form>
                     </div>
                 </mat-tab>
                 <!-- Remove Bot -->

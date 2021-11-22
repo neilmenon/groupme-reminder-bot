@@ -1,8 +1,8 @@
--- MariaDB dump 10.19  Distrib 10.6.4-MariaDB, for osx10.16 (x86_64)
+-- MariaDB dump 10.18  Distrib 10.5.8-MariaDB, for Win64 (AMD64)
 --
 -- Host: localhost    Database: groupme_reminder_bot
 -- ------------------------------------------------------
--- Server version	10.6.4-MariaDB
+-- Server version	10.5.8-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -139,9 +139,9 @@ DROP TABLE IF EXISTS `reminder`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `reminder` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique ID of the reminder that is auto-generated when the record is added to the DB.',
+  `id` int(11) NOT NULL COMMENT 'The unique ID of the reminder.',
   `text` varchar(191) NOT NULL COMMENT 'The content of the reminder to send to the group.',
-  `timestamp` datetime NOT NULL COMMENT 'A datetime object of when to send the reminder. Will be updated if the reminder is recurring.',
+  `timestamp` varchar(191) NOT NULL COMMENT 'A unix timestamp of when to send the reminder. Will be updated if the reminder is recurring.',
   `frequency` int(11) DEFAULT NULL COMMENT 'How often the reminder should be sent, measured in minutes. If NULL, then the reminder is one-time.',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -156,12 +156,11 @@ DROP TABLE IF EXISTS `reminder_history`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `reminder_history` (
   `reminder_id` int(11) NOT NULL COMMENT 'The ID of the reminder.',
-  `sent` datetime NOT NULL COMMENT 'A datetime object of when the reminder was sent to the group. ',
+  `sent` varchar(191) NOT NULL COMMENT 'The unix timestamp of when the reminder was sent to the group. ',
   `text` varchar(191) NOT NULL COMMENT 'The reminder message that was sent to the group.',
   `group_id` int(11) NOT NULL COMMENT 'The group ID of the group in which the reminder was sent.',
-  PRIMARY KEY (`reminder_id`),
+  PRIMARY KEY (`reminder_id`,`sent`),
   KEY `reminder_history_2` (`group_id`),
-  CONSTRAINT `reminder_history_1` FOREIGN KEY (`reminder_id`) REFERENCES `reminder` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `reminder_history_2` FOREIGN KEY (`group_id`) REFERENCES `groups` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -225,4 +224,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-11-22  1:12:49
+-- Dump completed on 2021-11-22 18:32:55

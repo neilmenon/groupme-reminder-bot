@@ -28,8 +28,14 @@ export class HomeComponent implements OnInit {
   isFrequencyChecked: boolean = false
   today: Date = new Date()
   reminders: Array<ReminderModel> = []
-  displayedColumns: Array<string> = ['text', 'timestamp', 'frequency', 'sendingIn', 'actions']
+  displayedColumns: Array<string> = ['id', 'text', 'timestamp', 'frequency', 'sendingIn', 'actions']
   sortOrder: string = "DESC"
+  reminderHistory: Array<any> = []
+  reminderHistoryColumns: Array<string> = ["id", "sent", "text"]
+  settingsForm: FormGroup
+  keywordForm: FormGroup
+  keywordMappings: Array<{ phrase:string, mapping: string }> = []
+  keywordColumns: Array<string> = ['phrase', 'mapping', 'actions']
 
   constructor(
     private backendService: BackendService,
@@ -62,6 +68,11 @@ export class HomeComponent implements OnInit {
     this.rForm.valueChanges.subscribe(() => {
       console.log(this.rForm.getRawValue())
     })
+
+    // bot setting form
+    this.settingsForm = this.fb.group({ prefix: [null, Validators.required], id: [null] })
+
+    this.rebuildKeywordForm()
   }
 
   signOut() {
@@ -90,14 +101,9 @@ export class HomeComponent implements OnInit {
       if (data?.id) {
         this.currGroup['isBotRegistered'] = true
         this.getReminders()
-        // setTimeout(() => {
-        //   console.log(this.sort)
-        //   let sortC: MatSort = this.sort.toArray()[0]
-        //   console.log(sortC)
-        //   sortC.sortChange.subscribe(() => {
-        //     console.log(sortC)
-        //   })
-        // }, 2000)
+        this.getReminderHistory()
+        this.getBotSettings()
+        this.getKeywordMappings()
       } else {
         this.currGroup['isBotRegistered'] = false
       }
@@ -207,6 +213,56 @@ export class HomeComponent implements OnInit {
       this.reminders = data
     }).catch(() => {
       this.messageService.open("Unable to delete reminder. An error occured.")
+    })
+  }
+
+  getReminderHistory() {
+    this.backendService.getReminderHistory(this.currGroup.id).toPromise().then((data: any) => { this.reminderHistory = data })
+  }
+  
+  getBotSettings() {
+    this.backendService.getBotSettings(this.currGroup.id).toPromise().then((data: any) => {
+      data['prefix'] = data['settings_json']['prefix']
+      this.settingsForm.patchValue(data)
+    })
+  }
+
+  updateSettings() {
+    console.log(this.settingsForm.getRawValue())
+    this.backendService.setBotSettings(this.currGroup.id, this.settingsForm.getRawValue()).toPromise().then(() => {
+      this.messageService.open("Successfully updated settings.")
+    }).catch(() => {
+      this.messageService.open("There was an issue updating the settings.")
+    })
+  }
+
+  rebuildKeywordForm() {
+    // keyword mapping form
+    this.keywordForm = this.fb.group({ phrase: [null, Validators.required], mapping: [null, Validators.required] })
+  }
+
+  createKeywordMapping() {
+    this.backendService.createKeywordMapping(this.currGroup.id, this.keywordForm.controls['phrase'].value, this.keywordForm.controls['mapping'].value).toPromise().then((data: any) => {
+      this.rebuildKeywordForm()
+      this.messageService.open("Successfuly added keyword mapping.")
+      this.keywordMappings = data
+    }).catch(() => {
+      this.messageService.open("Unable to add keyword mapping.")
+    })
+  }
+
+  getKeywordMappings() {
+    this.backendService.getKeywordMappings(this.currGroup.id).toPromise().then((data: any) => {
+      this.keywordMappings = data
+    })
+  }
+
+  deleteKeywordMapping(element: any) {
+    this.backendService.deleteKeywordMapping(this.currGroup.id, element.phrase, element.mapping).toPromise().then((data: any) => {
+      this.keywordMappings = data
+      this.messageService.open("Successfully deleted keyword mapping.")
+    }).catch(() => {
+      this.messageService.open("Unable to delete keyword mapping.")
     })
   }
 

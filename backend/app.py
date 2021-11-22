@@ -122,6 +122,13 @@ def add_bot():
    data = { "user_id": session['user_id'], "group_id": group_id }
    sql_helper.execute_db(sql_helper.insert_into("part_of", data), commit=True)
 
+   # create bot setting entry
+   setting_id = random.randint(1,5000)
+   sql_helper.execute_db(sql_helper.insert_into("bot_setting", { "id": setting_id, "settings_json": '{ "prefix": "❗❗❗REMINDER: " }' }), commit=True)
+
+   # create has_setting association
+   sql_helper.execute_db(sql_helper.insert_into("has_setting", { "group_id": group_id, "setting_id": setting_id }), commit=True)
+
    # send welcome message
    data = { "text": "Thanks for adding Reminder Bot to your group! If you are a group admin, you can manage me by visiting the dashboard at {}. Happy reminding!".format(cfg['frontend_url']), "bot_id": resp['response']['bot']['bot_id'] }
    resp = requests.post("https://api.groupme.com/v3/bots/post", json=data)
@@ -228,20 +235,22 @@ def reminder_task():
       abort(401)
 
    # get all reminders
-   result = sql_helper.execute_db("SELECT reminder.*, reminds.group_id, groups.bot_id FROM reminder LEFT JOIN reminds ON reminder.id = reminds.reminder_id LEFT JOIN groups ON groups.id = reminds.group_id")
+   result = sql_helper.execute_db("SELECT reminder.*, reminds.group_id, bot_setting.settings_json, groups.bot_id FROM reminder LEFT JOIN reminds ON reminder.id = reminds.reminder_id LEFT JOIN groups ON groups.id = reminds.group_id LEFT JOIN has_setting ON has_setting.group_id = reminds.group_id LEFT JOIN bot_setting ON bot_setting.id = has_setting.setting_id")
    for reminder in result:
       reminder_date = datetime.datetime.utcfromtimestamp(int(reminder['timestamp']))
       if reminder_date < datetime.datetime.utcnow(): # needs to be sent!
          logger.log("Sending reminder: {}".format(reminder))
 
+         settings_json = json.loads(reminder['settings_json'])
+
          # create  & send reminder
-         data = { "text": "❗❗❗REMINDER: {}".format(reminder['text']), "bot_id": reminder['bot_id'] }
+         data = { "text": "{}{}".format(settings_json['prefix'], reminder['text']), "bot_id": reminder['bot_id'] }
          requests.post("https://api.groupme.com/v3/bots/post", json=data)
 
          # create entry in reminder history:
          data = {
             "reminder_id": reminder['id'],
-            "sent": str(datetime.datetime.now()),
+            "sent": str(int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp())),
             "text": reminder['text'],
             "group_id": reminder['group_id']
          }
@@ -255,6 +264,67 @@ def reminder_task():
 
    # return reminders
    return jsonify(True)
+
+@app.route('/api/groups/<int:group_id>/reminder-history', methods=['GET'])
+def reminder_history(group_id):
+   return jsonify(sql_helper.execute_db("SELECT * FROM reminder_history WHERE group_id = {} ORDER BY sent DESC".format(group_id)))
+
+@app.route('/api/groups/<int:group_id>/settings', methods=['GET'])
+def bot_settings_get(group_id):
+   result = sql_helper.execute_db("SELECT bot_setting.* FROM bot_setting NATURAL JOIN has_setting WHERE has_setting.group_id = {}".format(group_id))[0]
+   result['settings_json'] = json.loads(result['settings_json'])
+   return jsonify(result)
+
+@app.route('/api/groups/<int:group_id>/settings', methods=['POST'])
+def bot_settings_update(group_id):
+   params = request.get_json()
+   setting_id = params['id']
+   del params['id']
+   json_str = '{"prefix": "' + params['prefix'] + '"}'
+   sql_helper.execute_db("UPDATE bot_setting SET settings_json = '{}' WHERE id = {}".format(json_str, setting_id), commit=True)
+   return jsonify(True)
+
+@app.route('/api/groups/<int:group_id>/keyword-mapping', methods=['GET'])
+def keyword_get(group_id):
+   return jsonify(sql_helper.execute_db("SELECT phrase, mapping FROM keyword_mapping WHERE group_id = {}".format(group_id)))
+
+@app.route('/api/groups/<int:group_id>/keyword-mapping', methods=['POST'])
+def keyword_post(group_id):
+   params = request.get_json()
+   if params:
+      try:
+         phrase = params['phrase']
+         mapping = params['mapping']
+      except KeyError as e:
+         response = make_response(jsonify(error="Missing required parameter: " + str(e.args[0]) + "."), 400)
+         abort(response)
+
+   data = {
+      "group_id": group_id,
+      "phrase": phrase,
+      "mapping": mapping
+   }
+   sql_helper.execute_db(sql_helper.replace_into("keyword_mapping", data), commit=True)
+   return jsonify(sql_helper.execute_db("SELECT phrase, mapping FROM keyword_mapping WHERE group_id = {}".format(group_id)))
+
+@app.route('/api/groups/<int:group_id>/keyword-mapping/delete', methods=['POST'])
+def keyword_del(group_id):
+   params = request.get_json()
+   if params:
+      try:
+         phrase = params['phrase']
+         mapping = params['mapping']
+      except KeyError as e:
+         response = make_response(jsonify(error="Missing required parameter: " + str(e.args[0]) + "."), 400)
+         abort(response)
+
+   sql_helper.execute_db("DELETE FROM keyword_mapping WHERE phrase = '{}' AND mapping = '{}' AND group_id = {}".format(phrase, mapping, group_id), commit=True)
+   return jsonify(sql_helper.execute_db("SELECT phrase, mapping FROM keyword_mapping WHERE group_id = {}".format(group_id)))
+
+@app.route('/api/msg-callback/<int:group_id>', methods=['POST'])
+def msg_callback(group_id):
+   params = request.get_json()
+   logger.log(params)
 
 
 if __name__ == "__main__":
