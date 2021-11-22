@@ -57,27 +57,11 @@ CREATE TABLE `groups` (
   `id` int(11) NOT NULL COMMENT 'The unique GroupMe ID from the GroupMe API.',
   `name` varchar(191) NOT NULL COMMENT 'The name of the GroupMe group.',
   `added_bot_date` datetime NOT NULL COMMENT 'A datetime object of when the GroupMe group invited the bot into their group.',
-  `size` int(11) NOT NULL COMMENT 'The number of members in the GroupMe group.',
   `bot_id` varchar(100) NOT NULL COMMENT 'The bot ID from the GroupMe API.',
   PRIMARY KEY (`id`),
   UNIQUE KEY `bot_id` (`bot_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`neil`@`localhost`*/ /*!50003 TRIGGER on_group_delete AFTER DELETE ON groups FOR EACH ROW CALL user_remove() */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `has_setting`
@@ -140,7 +124,6 @@ DROP TABLE IF EXISTS `part_of`;
 CREATE TABLE `part_of` (
   `user_id` int(11) NOT NULL COMMENT 'The user ID of the GroupMe user.',
   `group_id` int(11) NOT NULL COMMENT 'The group ID of the GroupMe group.',
-  `is_group_admin` tinyint(1) NOT NULL COMMENT 'Whether the given user has admin privileges in the group.',
   PRIMARY KEY (`user_id`,`group_id`),
   KEY `group_id` (`group_id`),
   CONSTRAINT `part_of_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -242,4 +225,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-11-21 15:34:48
+-- Dump completed on 2021-11-22  1:12:49

@@ -4,6 +4,7 @@ import json
 import requests
 import time
 import os
+import datetime
 
 import config
 import sql_helper
@@ -85,6 +86,67 @@ def authorize():
       return redirect(login_redirect)
    else: # redirect to frontend
       return redirect(cfg['frontend_url'])
+
+@app.route('/api/register-bot', methods=['POST'])
+def add_bot():
+   params = request.get_json()
+   if params:
+      try:
+         group_id = params['group_id']
+      except KeyError as e:
+         response = make_response(jsonify(error="Missing required parameter: " + str(e.args[0]) + "."), 400)
+         abort(response)
+   
+   # create bot 
+   data = {}
+   data['bot'] = {
+      "name": "Reminder Bot",
+      "group_id": str(group_id),
+      "avatar_url": "https://i.imgur.com/Lqr2s5N.png",
+      "callback_url": cfg['callback_url'] + group_id
+   }
+   logger.log(data)
+   resp = requests.post("https://api.groupme.com/v3/bots?token={}".format(session['access_token']), json=data).json()
+
+   # create entry in groups table
+   data = {
+      "id": group_id,
+      "name": resp['response']['bot']['group_name'],
+      "added_bot_date": str(datetime.datetime.now()),
+      "bot_id": resp['response']['bot']['bot_id']
+   }
+   sql_helper.execute_db(sql_helper.insert_into_where_not_exists("groups", data, "id"), commit=True)
+
+   # create association in part_of table
+   data = { "user_id": session['user_id'], "group_id": group_id }
+   sql_helper.execute_db(sql_helper.insert_into("part_of", data), commit=True)
+
+   # send welcome message
+   data = { "text": "Thanks for adding Reminder Bot to your group! If you are a group admin, you can manage me by visiting the dashboard at {}. Happy reminding!".format(cfg['frontend_url']), "bot_id": resp['response']['bot']['bot_id'] }
+   resp = requests.post("https://api.groupme.com/v3/bots/post", json=data)
+
+   return jsonify(True)
+
+@app.route('/api/groups/<int:group_id>/delete', methods=['DELETE'])
+def delete_group(group_id):
+   # get group
+   group = sql_helper.execute_db("SELECT * FROM groups WHERE id = {}".format(group_id))[0]
+
+   # destroy bot from group
+   requests.post("https://api.groupme.com/v3/bots/destroy?token={}".format(session['access_token']), json={"bot_id": group['bot_id']})
+
+   # remove associations from part_of table
+   sql_helper.execute_db("DELETE FROM part_of WHERE group_id = {}".format(group_id), commit=True)
+
+   # delete group
+   sql_helper.execute_db("DELETE FROM groups WHERE id = {}".format(group_id), commit=True)
+
+   return jsonify(True)
+
+@app.route('/api/groups/<int:group_id>', methods=['GET'])
+def get_group(group_id):
+   result = sql_helper.execute_db("SELECT id FROM groups WHERE id = {}".format(group_id))
+   return jsonify(result[0]) if len(result) else jsonify(None)
 
 if __name__ == "__main__":
    # localhost or server?

@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { MatOptionSelectionChange } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSelect, MatSelectChange } from '@angular/material/select';
+import * as moment from 'moment';
 import { BackendService } from '../backend.service';
 import { config } from '../config';
 import { ConfirmPopupComponent } from '../confirm-popup/confirm-popup.component';
@@ -15,6 +16,7 @@ import { UserModel } from '../models/userModel';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {  
+  moment: any = moment
   user: UserModel
   groups: Array<any> = []
   groupForm: FormGroup
@@ -61,7 +63,15 @@ export class HomeComponent implements OnInit {
   }
 
   selectGroup(event: MatSelectChange) {
-    this.currGroup = event.value
+    this.backendService.getGroupFromDB(event.value?.id).toPromise().then((data: any) => {
+      this.currGroup = event.value
+      if (data?.id) {
+        this.currGroup['isBotRegistered'] = true
+      } else {
+        this.currGroup['isBotRegistered'] = false
+      }
+    })
+    
   }
 
   loadGroups() {
@@ -77,11 +87,32 @@ export class HomeComponent implements OnInit {
     return group.members.filter((x: any) => x.user_id == this.user.id)[0].roles.includes("admin")
   }
 
-  isBotRegistered(): boolean {
-    return this.user.bot_groups.includes(this.currGroup?.id)
+  addBot() {
+    this.backendService.registerBot(this.currGroup.id).toPromise().then((data: any) => {
+      this.currGroup['isBotRegistered'] = true
+      this.messageService.open(`Successfully added Reminder Bot to ${this.currGroup.name}!`)
+    })
   }
 
-  addBot() {
+  deleteBot() {
+    const dialogRef = this.dialog.open(ConfirmPopupComponent, {
+      data: { 
+        title: "Delete Bot ",
+        message: `Are you sure you want to remove Reminder Bot from ${this.currGroup.name}? You can always re-add the bot.`,
+        primaryButton: "Confirm"
+      }
+    })
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.backendService.deleteBotFromGroup(this.currGroup.id).toPromise().then(() => {
+          this.currGroup['isBotRegistered'] = false
+          this.messageService.open(`Successfully removed Reminder Bot from ${this.currGroup.name}.`)
+        }).catch(() => {
+          this.messageService.open("Unable to delete bot. Please try again.")
+        })
+      }
+    })
     
   }
 

@@ -9,5 +9,7 @@ config = {
     'server': False, # False if running on localhost, True running with uWSGI / NGINX
     'sql_logging': False,
     'groupme_redirect_url': '', # redirect URL of GroupMe Application
-    'frontend_url': ''
+    'frontend_url': '',
+    'callback_url': '',
+    
 }

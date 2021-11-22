@@ -17,7 +17,7 @@
             >
         </div>
         <ng-template #guest>
-            <button mat-raised-button color="warn" (click)="signIn()">Sign In with GroupMe</button>
+            <button mat-raised-button color="accent" (click)="signIn()">Sign In with GroupMe</button>
         </ng-template>
     </mat-toolbar-row>
 </mat-toolbar>
@@ -36,15 +36,22 @@
                 </mat-select>
             </mat-form-field>
             <mat-icon (click)="loadGroups()" class="side-icon clickable" matTooltip="Load Groups" matTooltipPosition="above">{{ groupsLoading ? 'pending' : 'autorenew' }}</mat-icon>
-            <p *ngIf="currGroup && !isBotRegistered()">
+            <p *ngIf="currGroup && !currGroup?.isBotRegistered">
                 Bot not added to <strong>{{ currGroup.name }}</strong> yet! Add the bot by clicking below.<br> <br>
                 <button mat-raised-button color="primary" (click)="addBot()">Add Bot</button>
             </p>
         </form>
-        <div *ngIf="currGroup && isBotRegistered()">
+        <div *ngIf="currGroup && currGroup?.isBotRegistered">
+            <h2>Managing Bot — {{ currGroup.name }}</h2>
+            <div style="display: flex;">
+                <span>Members: {{ currGroup.members.length }}</span>
+                <span class="spacer"></span>
+                <span>Last post: {{ moment.unix(currGroup.updated_at).fromNow() }}</span>
+            </div>
             <mat-tab-group>
-                <mat-tab label="First"> Content 1 </mat-tab>
+                <mat-tab label="Remove Bot"><button mat-raised-button color="warn" (click)="deleteBot()">Remove Bot</button></mat-tab>
                 <mat-tab label="Second"> Content 2 </mat-tab>
+                <mat-tab label="Third"> Content 3 </mat-tab>
                 <mat-tab label="Third"> Content 3 </mat-tab>
             </mat-tab-group>
         </div>
