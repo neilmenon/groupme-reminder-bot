@@ -4,3 +4,8 @@
     border-radius: 50%;
     margin-top: 0.6rem;
 }
+.side-icon {
+    position: relative; 
+    top: 0.4rem ; 
+    left: 0.5rem ;
+}

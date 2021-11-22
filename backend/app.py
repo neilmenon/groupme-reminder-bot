@@ -29,7 +29,9 @@ def index():
 @app.route('/api/user', methods=['GET'])
 def users(): # gets the currently logged in user if logged in, else returns blank object
    if session and "access_token" in session:
-      return jsonify(sql_helper.execute_db("SELECT id,name,num_reminders,image_url FROM users WHERE id = {}".format(session['user_id']))[0])
+      user = sql_helper.execute_db("SELECT id,name,num_reminders,image_url,access_token FROM users WHERE id = {}".format(session['user_id']))[0]
+      user['bot_groups'] = [u['group_id'] for u in sql_helper.execute_db("SELECT group_id FROM part_of WHERE user_id = {}".format(user['id']))]
+      return jsonify(user)
    else:
       return jsonify(None)
 
