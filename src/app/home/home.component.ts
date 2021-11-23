@@ -48,6 +48,7 @@ export class HomeComponent implements OnInit {
     this.backendService.getUser().toPromise().then((data: any) => {
       if (data?.id) {
         this.user = data
+        this.loadGroups()
       }
     }).catch(() => {
       this.messageService.open("There was an error while trying to get the logged in user.")

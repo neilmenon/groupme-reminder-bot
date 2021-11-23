@@ -21,3 +21,11 @@
 .mat-elevation-z8 th {
     text-align: center;
 }
+.sub {
+    font-size: 12px;
+    font-family: monospace;
+    padding-left: 0.6rem;
+    top: 15px;
+    position: absolute;
+    line-height: 17px;
+}

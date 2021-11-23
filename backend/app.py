@@ -223,7 +223,7 @@ def delete_reminder():
 
 @app.route('/api/reminders/reminder-task', methods=['POST'])
 def reminder_task():
-   time.sleep(2)
+   time.sleep(5)
    params = request.get_json()
    if params:
       try:

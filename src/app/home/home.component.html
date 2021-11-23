@@ -5,6 +5,7 @@
                 <img src="https://i.imgur.com/kN9W6eQ.png" style="max-width: 150px;">
                 <span style="position: absolute; font-size: 24px; right: 9px ; top: -1px ; text-transform: lowercase;">Reminder Bot</span>
             </button>
+            <span class="sub">a project by Neil, Asmir, Eric, & Meg<br>CS 4750 - Database Systems / UVA</span>
         </span>
         <span class="spacer"></span>
         <div *ngIf="user; else guest">
@@ -35,7 +36,7 @@
                     <mat-option *ngFor="let g of groups" [value]="g" [disabled]="!isGroupAdmin(g)" [matTooltip]="!isGroupAdmin(g) ? 'You are not an admin of this group' : null" matTooltipPosition="right">{{ g?.name }}</mat-option>
                 </mat-select>
             </mat-form-field>
-            <mat-icon (click)="loadGroups()" class="side-icon clickable" matTooltip="Load Groups" matTooltipPosition="above">{{ groupsLoading ? 'pending' : 'autorenew' }}</mat-icon>
+            <mat-icon (click)="loadGroups()" class="side-icon clickable" matTooltip="Refresh Groups" matTooltipPosition="above">{{ groupsLoading ? 'pending' : 'autorenew' }}</mat-icon>
             <p *ngIf="currGroup && !currGroup?.isBotRegistered">
                 Bot not added to <strong>{{ currGroup.name }}</strong> yet! Add the bot by clicking below.<br> <br>
                 <button mat-raised-button color="primary" (click)="addBot()">Add Bot</button>

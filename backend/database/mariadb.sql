@@ -97,24 +97,6 @@ CREATE TABLE `keyword_mapping` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `memories`
---
-
-DROP TABLE IF EXISTS `memories`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `memories` (
-  `memory_id` int(11) NOT NULL COMMENT 'The ID of the message, from the GroupMe API.',
-  `group_id` int(11) NOT NULL COMMENT 'The group ID of the message that was sent. ',
-  `date` datetime NOT NULL COMMENT 'The date the message was sent.',
-  `text` varchar(191) NOT NULL COMMENT 'The contents of the message.',
-  PRIMARY KEY (`memory_id`),
-  KEY `memories_1` (`group_id`),
-  CONSTRAINT `memories_1` FOREIGN KEY (`group_id`) REFERENCES `groups` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `part_of`
 --
 
@@ -166,21 +148,6 @@ CREATE TABLE `reminder_history` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `reminder_type`
---
-
-DROP TABLE IF EXISTS `reminder_type`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `reminder_type` (
-  `reminder_id` int(11) NOT NULL COMMENT 'The ID of the reminder.',
-  `type` varchar(191) NOT NULL COMMENT 'The type of the reminder (could have multiple rows for a single reminder).',
-  PRIMARY KEY (`reminder_id`,`type`),
-  CONSTRAINT `reminder_type_1` FOREIGN KEY (`reminder_id`) REFERENCES `reminder` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `reminds`
 --
 
@@ -224,4 +191,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-11-22 18:32:55
+-- Dump completed on 2021-11-22 22:32:18
