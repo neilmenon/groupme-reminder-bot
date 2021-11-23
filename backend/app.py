@@ -300,6 +300,10 @@ def keyword_post(group_id):
          response = make_response(jsonify(error="Missing required parameter: " + str(e.args[0]) + "."), 400)
          abort(response)
 
+   if phrase.lower() in mapping.lower():
+      response = make_response(jsonify(error="Phrase cannot be in mapping."), 400)
+      abort(response)
+
    data = {
       "group_id": group_id,
       "phrase": phrase,
@@ -326,12 +330,13 @@ def keyword_del(group_id):
 def msg_callback(group_id):
    params = request.get_json()
    message: str = params['text']
+   logger.log(params)
 
    # check if message text includes any keyword mappings
    result = sql_helper.execute_db("SELECT phrase,mapping FROM keyword_mapping WHERE group_id = {}".format(group_id))
 
    for m in result:
-      if m['phrase'].lower() in message.lower():
+      if m['phrase'].lower() in message.lower() and m['mapping'].lower() != message.lower():
          # match! send mapping...
          bot_id = sql_helper.execute_db("SELECT bot_id FROM groups WHERE id = {}".format(group_id))[0]['bot_id']
          
