@@ -1,0 +1,1 @@
+cd /root/projects/groupme-reminder-bot && git pull && npm i && ng build --prod && \cp -a /root/projects/groupme-reminder-bot/dist/groupme-reminder-bot/. /usr/share/nginx/groupme-reminder-bot/; service cs4750 restart

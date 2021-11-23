@@ -223,6 +223,7 @@ def delete_reminder():
 
 @app.route('/api/reminders/reminder-task', methods=['POST'])
 def reminder_task():
+   time.sleep(2)
    params = request.get_json()
    if params:
       try:
@@ -324,8 +325,20 @@ def keyword_del(group_id):
 @app.route('/api/msg-callback/<int:group_id>', methods=['POST'])
 def msg_callback(group_id):
    params = request.get_json()
-   logger.log(params)
+   message: str = params['text']
 
+   # check if message text includes any keyword mappings
+   result = sql_helper.execute_db("SELECT phrase,mapping FROM keyword_mapping WHERE group_id = {}".format(group_id))
+
+   for m in result:
+      if m['phrase'].lower() in message.lower():
+         # match! send mapping...
+         bot_id = sql_helper.execute_db("SELECT bot_id FROM groups WHERE id = {}".format(group_id))[0]['bot_id']
+         
+         data = { "text": m['mapping'], "bot_id": bot_id }
+         requests.post("https://api.groupme.com/v3/bots/post", json=data)
+
+   return jsonify(True)
 
 if __name__ == "__main__":
    # localhost or server?
