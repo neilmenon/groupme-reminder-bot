@@ -15,6 +15,23 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+
+--
+-- Database: `groupme_reminder_bot`
+--
+
+DELIMITER $$
+--
+-- Procedures
+--
+CREATE DEFINER=`neil`@`localhost` PROCEDURE `user_remove` ()  BEGIN
+	DELETE FROM users WHERE users.id NOT IN (SELECT part_of.user_id FROM part_of WHERE users.id = part_of.user_id);
+END$$
+
+DELIMITER ;
+
+-- --------------------------------------------------------
+
 --
 -- Table structure for table `bot_setting`
 --
@@ -62,6 +79,16 @@ CREATE TABLE `groups` (
   UNIQUE KEY `bot_id` (`bot_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Triggers `groups`
+--
+DELIMITER $$
+CREATE TRIGGER `on_group_delete` AFTER DELETE ON `groups` FOR EACH ROW CALL user_remove()
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `has_setting`
